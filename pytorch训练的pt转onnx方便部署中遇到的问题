@@ -1,1 +1,32 @@
-pytorch正常训练的pt需要转成onnx 方便在更多设备上运行 保存时候保存完整模型，不可以是dict
+### pytorch正常训练的pt需要转成onnx 方便在更多设备上运行 保存时候保存完整模型，不可以是dict
+调用以下代码实现：
+
+import torch
+from densenet169 import Desnet_RGP   #此处import你的模型 如果不调用可能会报错Can't get attribute 'Desnet_RGP' on <module '__main__' from '/home/s21_hbw/zct/RGP/RRT-MIL-master/test_noox.py'>
+torch_model = torch.load("best_model_CBSIS_randomseed_k0.5_size448_0.926829268292683.pt")  # pytorch模型加载
+batch_size = 1  # 批处理大小
+input_shape = (3, 800, 800)  # 输入数据 注意和训练的时候要一致
+
+# set the model to inference mode
+torch_model.eval()
+
+x = torch.randn(batch_size, *input_shape)  # 生成张量
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")      #当时报错，所以加了这一句Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+x = x.to(device)
+
+export_onnx_file = "test.onnx"  # 目的ONNX文件名
+torch.onnx.export(torch_model,
+                  x,
+                  export_onnx_file,
+                  opset_version=10,
+                  do_constant_folding=True,  # 是否执行常量折叠优化
+                  input_names=["input"],  # 输入名
+                  output_names=["output"],  # 输出名
+                  dynamic_axes={"input": {0: "batch_size"},  # 批处理变量
+                                "output": {0: "batch_size"}})
+
+
+最终运行的时候报错为Exporting the operator ::einsum to ONNX opset version 10 is not supported. Support for this operator was added in version 12,
+故进入库文件/anaconda3/envs/henrycam/lib/python3.10/site-packages/torch/onnx寻找文件untils.py把516行的opset_version=opset_version,改为opset_version=12即可
+
