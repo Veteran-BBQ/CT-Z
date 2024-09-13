@@ -28,5 +28,5 @@ torch.onnx.export(torch_model,
 
 
 最终运行的时候报错为Exporting the operator ::einsum to ONNX opset version 10 is not supported. Support for this operator was added in version 12,
-故进入库文件/anaconda3/envs/henrycam/lib/python3.10/site-packages/torch/onnx寻找文件untils.py把516行的opset_version=opset_version,改为opset_version=12即可
+第一种方法可以把opset_version指定为12在以上的export函数中或者进入库文件/anaconda3/envs/henrycam/lib/python3.10/site-packages/torch/onnx寻找文件untils.py把516行的opset_version=opset_version,改为opset_version=12即可
 
